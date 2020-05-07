@@ -2,7 +2,7 @@ import numpy as np
 from lightfm.datasets import fetch_movielens
 from lightfm import LightFM
 
-def sample_recommendation(model, train_data, labels, user_ids, n_known, n_results):
+def sample_recommendation(model, train_data, labels, user_ids, n_known=3, n_results=2):
     n_users, n_items = train_data.shape
     for user_id in user_ids:
         known_positives = labels[train_data.tocsr()[user_id].indices]
@@ -37,4 +37,4 @@ model.fit(train_set, epochs=30, num_threads=2)
 users_ids_list = [3, 25, 451, 737, 901]
 known_items_to_show = 5
 recommendations_to_show = 3
-sample_recommendation(model, train_set, labels, users_ids_list, known_items_to_show, recommendations_to_show)
+sample_recommendation(model=model, train_data=train_set, labels=labels, user_ids=users_ids_list, n_known=known_items_to_show, n_results=recommendations_to_show)
