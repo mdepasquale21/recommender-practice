@@ -2,7 +2,7 @@ import numpy as np
 from lightfm.datasets import fetch_movielens
 from lightfm import LightFM
 
-def sample_recommendation(model, train_data, labels, user_ids, n_results):
+def sample_recommendation(model, train_data, labels, user_ids, n_known, n_results):
     n_users, n_items = train_data.shape
     for user_id in user_ids:
         known_positives = labels[train_data.tocsr()[user_id].indices]
@@ -11,7 +11,7 @@ def sample_recommendation(model, train_data, labels, user_ids, n_results):
         top_items_filtered = [item for item in top_items if item not in known_positives]
         print("User %s" % user_id)
         print("    Known positives:")
-        for x in known_positives[:n_results]:
+        for x in known_positives[:n_known]:
             print("        %s" % x)
         print("    Recommended:")
         for x in top_items_filtered[:n_results]:
@@ -34,6 +34,7 @@ model = LightFM(loss = 'warp')
 model.fit(train_set, epochs=30, num_threads=2)
 
 # get recommendations
-users_ids_list = [3, 25, 451]
-results_to_show = 3
-sample_recommendation(model, train_set, labels, users_ids_list, results_to_show)
+users_ids_list = [3, 25, 451, 737, 901]
+known_items_to_show = 5
+recommendations_to_show = 3
+sample_recommendation(model, train_set, labels, users_ids_list, known_items_to_show, recommendations_to_show)
