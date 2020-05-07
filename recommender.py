@@ -29,7 +29,10 @@ print(repr(train_set))
 print(repr(test_set))
 
 # define model
-model = LightFM(loss = 'warp')
+model = LightFM(loss = 'warp',
+                random_state=2016,
+                no_components=100,
+                user_alpha=0.000005)
 # train model
 model.fit(train_set, epochs=30, num_threads=2)
 
