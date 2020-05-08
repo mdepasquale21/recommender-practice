@@ -18,6 +18,39 @@ import random
 #ignore warnings
 warnings.filterwarnings("ignore")
 
+###############################################################################################################################
+# function to sample recommendations to a given user
+def sample_recommendation_user(model, interactions, user_id, user_dict, 
+                               item_dict,threshold = 0,nrec_items = 5, show = True):
+    
+    n_users, n_items = interactions.shape
+    user_x = user_dict[user_id]
+    scores = pd.Series(model.predict(user_x, np.arange(n_items), item_features=books_metadata_csr))
+    scores.index = interactions.columns
+    scores = list(pd.Series(scores.sort_values(ascending=False).index))
+    
+    known_items = list(pd.Series(interactions.loc[user_id,:] \
+                                 [interactions.loc[user_id,:] > threshold].index).sort_values(ascending=False))
+    
+    scores = [x for x in scores if x not in known_items]
+    return_score_list = scores[0:nrec_items]
+    known_items = list(pd.Series(known_items).apply(lambda x: item_dict[x]))
+    scores = list(pd.Series(return_score_list).apply(lambda x: item_dict[x]))
+    if show == True:
+        print ("User: " + str(user_id))
+        print("Known Likes:")
+        counter = 1
+        for i in known_items:
+            print(str(counter) + '- ' + i)
+            counter+=1
+
+        print("\n Recommended Items:")
+        counter = 1
+        for i in scores:
+            print(str(counter) + '- ' + i)
+            counter+=1
+###############################################################################################################################
+
 # import books metadata
 books_metadata = pd.read_json('./data-books/goodreads_books_poetry.json', lines=True)
 # import user-book interactions
@@ -122,7 +155,7 @@ print(books_metadata_selected_transformed.head(5))
 # convert to csr matrix
 books_metadata_csr = csr_matrix(books_metadata_selected_transformed.drop('book_id', axis=1).values)
 print('Sparse matrix of books metadata')
-print(books_metadata_csr)
+print(repr(books_metadata_csr))
 
 # Next we'll create an iteractions matrix which is np.float64 csr_matrix of shape ([n_users, n_books]).
 # We'll also create a user dictionary for future use cases
@@ -142,5 +175,12 @@ for i in user_id:
 # convert to csr matrix
 user_book_interaction_csr = csr_matrix(user_book_interaction.values)
 print('Sparse matrix of interactions data')
-print(user_book_interaction_csr)
+print(repr(user_book_interaction_csr))
 
+############################################################################################################################### model
+
+model = LightFM(loss='warp', random_state=2016, learning_rate=0.90, no_components=150, user_alpha=0.000005)
+
+model = model.fit(user_book_interaction_csr, epochs=100, num_threads=16, verbose=False)
+
+sample_recommendation_user(model, user_book_interaction, interactions_selected['user_id'].iloc[0], user_dict, item_dict)
