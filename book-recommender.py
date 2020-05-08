@@ -126,7 +126,8 @@ print(interactions_counts.to_string())
 # and limit interactions from random 500 users to limit the data size for further analysis
 print('\nSelect only user-item interactions with users that have actually read the book, and a limited number (to simplify calculations)')
 interactions_selected = interactions_selected.loc[interactions_selected['is_read']==1, ['user_id', 'book_id', 'rating']]
-interactions_selected = interactions_selected[interactions_selected['user_id'].isin(random.sample(list(interactions_selected['user_id'].unique()), k=5000))]
+n_users = 5000
+interactions_selected = interactions_selected[interactions_selected['user_id'].isin(random.sample(list(interactions_selected['user_id'].unique()), k=n_users))]
 print(interactions_selected.sample(10).to_string(index=False))
 print('Final interactions dataset shape')
 print(interactions_selected.shape)
