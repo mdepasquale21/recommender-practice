@@ -12,7 +12,6 @@ import seaborn as sns
 from lightfm.cross_validation import random_train_test_split
 from lightfm.evaluation import auc_score, precision_at_k, recall_at_k
 from lightfm import LightFM
-#from skopt import forest_minimize
 import random
 
 #ignore warnings
@@ -37,14 +36,14 @@ def sample_recommendation_user(model, interactions, metadata, user_id, user_dict
     known_items = list(pd.Series(known_items).apply(lambda x: item_dict[x]))
     scores = list(pd.Series(return_score_list).apply(lambda x: item_dict[x]))
     if show:
-        print ("User: " + str(user_id))
+        print ("\nUser: " + str(user_id))
         print("Known Likes:")
         counter = 1
         for i in known_items:
             print(str(counter) + '- ' + i)
             counter+=1
 
-        print("\n Recommended Items:")
+        print("Recommended Items:")
         counter = 1
         for i in scores:
             print(str(counter) + '- ' + i)
@@ -92,6 +91,7 @@ books_metadata_selected['language_code'].replace('en-US', 'eng', inplace=True)
 books_metadata_selected['language_code'].replace('it-IT', 'ita', inplace=True)
 # convert is_ebook column into 1/0 where true=1 and false=0
 books_metadata_selected['is_ebook'] = books_metadata_selected.is_ebook.map(lambda x: 1*(x == 'true'))
+
 print('Books metadata after some manipulation')
 print(books_metadata_selected.sample(5).to_string(index=False))
 
@@ -112,9 +112,11 @@ print(interactions_selected.sample(2).to_string(index=False))
 print('Perform some manipulation on data...')
 # convert is_read column into 1/0 where True=1 and False=0
 interactions_selected['is_read'] = interactions_selected.is_read.map(lambda x: 1*(x == True))
+
 print('Interaction data after some manipulation')
 print(interactions_selected.sample(5).to_string(index=False))
 
+############################################################################################################################### some considerations before processing
 # Since we have two fields denoting interaction between a user and a book, is_read and rating
 # let's see how many data points we have where the user hasn't read the book but have given the ratings.
 print('\nUsers ratings (columns) divided by having actually read the book (2 rows)')
@@ -133,7 +135,6 @@ print('Final interactions dataset shape')
 print(interactions_selected.shape)
 
 ############################################################################################################################### data processing
-
 # Now, let's transform the available data into CSR sparse matrix that can be used for matrix operations.
 # We will start by the process by creating books_metadata matrix which is np.float64 csr_matrix of shape ([n_books, n_books_features])
 # Each row contains that book's weights over features. However, before we create a sparse matrix, we'll first create a item dictionary for future references
@@ -184,4 +185,6 @@ model = LightFM(loss='warp', random_state=2016, learning_rate=0.90, no_component
 
 model = model.fit(user_book_interaction_csr, epochs=100, num_threads=16, verbose=False)
 
-sample_recommendation_user(model, user_book_interaction, books_metadata_csr, interactions_selected['user_id'].iloc[0], user_dict, item_dict)
+users_ids_list = interactions_selected['user_id'].iloc[0:3]
+for user_id in users_ids_list:
+    sample_recommendation_user(model, user_book_interaction, books_metadata_csr, user_id, user_dict, item_dict)
