@@ -20,12 +20,12 @@ warnings.filterwarnings("ignore")
 
 ###############################################################################################################################
 # function to sample recommendations to a given user
-def sample_recommendation_user(model, interactions, user_id, user_dict, 
-                               item_dict,threshold = 0,nrec_items = 5, show = True):
+def sample_recommendation_user(model, interactions, metadata, user_id, user_dict, 
+                               item_dict, threshold = 0, nrec_items = 5, show = True):
     
     n_users, n_items = interactions.shape
     user_x = user_dict[user_id]
-    scores = pd.Series(model.predict(user_x, np.arange(n_items), item_features=books_metadata_csr))
+    scores = pd.Series(model.predict(user_x, np.arange(n_items), item_features=metadata))
     scores.index = interactions.columns
     scores = list(pd.Series(scores.sort_values(ascending=False).index))
     
@@ -36,7 +36,7 @@ def sample_recommendation_user(model, interactions, user_id, user_dict,
     return_score_list = scores[0:nrec_items]
     known_items = list(pd.Series(known_items).apply(lambda x: item_dict[x]))
     scores = list(pd.Series(return_score_list).apply(lambda x: item_dict[x]))
-    if show == True:
+    if show:
         print ("User: " + str(user_id))
         print("Known Likes:")
         counter = 1
@@ -183,4 +183,4 @@ model = LightFM(loss='warp', random_state=2016, learning_rate=0.90, no_component
 
 model = model.fit(user_book_interaction_csr, epochs=100, num_threads=16, verbose=False)
 
-sample_recommendation_user(model, user_book_interaction, interactions_selected['user_id'].iloc[0], user_dict, item_dict)
+sample_recommendation_user(model, user_book_interaction, books_metadata_csr, interactions_selected['user_id'].iloc[0], user_dict, item_dict)
