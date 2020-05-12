@@ -1,13 +1,8 @@
 # import dependent libraries
 import pandas as pd
-import os
 from scipy.sparse import csr_matrix
 import numpy as np
 import warnings
-
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-import seaborn as sns
 
 from lightfm.cross_validation import random_train_test_split
 from lightfm.evaluation import auc_score, precision_at_k, recall_at_k
@@ -181,10 +176,31 @@ print(repr(user_book_interaction_csr))
 
 ############################################################################################################################### model
 
-model = LightFM(loss='warp', random_state=2016, learning_rate=0.90, no_components=150, user_alpha=0.000005)
+model = LightFM(loss='warp', random_state=2016, learning_rate=0.05, no_components=150, user_alpha=0.000005)
 
-model = model.fit(user_book_interaction_csr, epochs=100, num_threads=16, verbose=False)
+model = model.fit(user_book_interaction_csr, item_features=books_metadata_csr, epochs=100, num_threads=16, verbose=False)
 
-users_ids_list = interactions_selected['user_id'].iloc[0:3]
+n_users=3
+n_rec_items=5
+users_ids_list = interactions_selected['user_id'].iloc[0:n_users]
 for user_id in users_ids_list:
-    sample_recommendation_user(model, user_book_interaction, books_metadata_csr, user_id, user_dict, item_dict)
+    sample_recommendation_user(model, user_book_interaction, books_metadata_csr, user_id, user_dict, item_dict, nrec_items=n_rec_items)
+
+# calculate metrics and evaluate model
+patk = precision_at_k(model, user_book_interaction_csr, train_interactions=None, k=n_rec_items,
+               user_features=None, item_features=books_metadata_csr, preserve_rows=True, num_threads=1, check_intersections=True)
+
+ratk = recall_at_k(model, user_book_interaction_csr, train_interactions=None, k=n_rec_items,
+               user_features=None, item_features=books_metadata_csr, preserve_rows=True, num_threads=1, check_intersections=True)
+
+mean_auc_score = auc_score(model, user_book_interaction_csr, item_features=books_metadata_csr, user_features=None, num_threads=1).mean()
+
+print('\nFor first ',n_users, ' users:')
+print('\nPrecision at k (proportion of recommended items in the top-k set that are relevant) with k = ', n_rec_items)
+print(patk[0:n_users])
+
+print('\nRecall at k (proportion of relevant items found in the top-k recommendations) with k = ', n_rec_items)
+print(ratk[0:n_users])
+
+print('\nMean AUC score')
+print(mean_auc_score)
