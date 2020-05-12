@@ -37,7 +37,7 @@ model = LightFM(loss = 'warp',
                 no_components=150)
 
 # train model
-model.fit(train_set, item_features=item_features, epochs=50, num_threads=2)
+model.fit(train_set, item_features=item_features, epochs=100, num_threads=2)
 
 # get recommendations
 users_ids_list = [3, 25, 451, 737, 901]
@@ -51,8 +51,8 @@ patk = precision_at_k(model, test_set, train_interactions=train_set, k=recommend
 ratk = recall_at_k(model, test_set, train_interactions=train_set, k=recommendations_to_show,
                user_features=None, item_features=item_features, preserve_rows=True, num_threads=1, check_intersections=True)
 
-print('\nPrecision at k (proportion of recommended items in the top-k set that are relevant)')
+print('\nPrecision at k (proportion of recommended items in the top-k set that are relevant) with k = ', recommendations_to_show)
 print(patk[users_ids_list])
 
-print('\nRecall at k (proportion of relevant items found in the top-k recommendations)')
+print('\nRecall at k (proportion of relevant items found in the top-k recommendations) with k = ', recommendations_to_show)
 print(ratk[users_ids_list])
