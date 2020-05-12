@@ -25,6 +25,8 @@ train_set = data['train']
 test_set = data['test']
 # take labels for all items
 item_labels = data['item_labels']
+# take item features
+item_features = data['item_features']
 # show data
 print(repr(train_set))
 print(repr(test_set))
@@ -32,10 +34,10 @@ print(repr(test_set))
 # define model (hybrid method)
 model = LightFM(loss = 'warp',
                 random_state=2016,
-                no_components=100,
-                user_alpha=0.000005)
+                no_components=150)
+
 # train model
-model.fit(train_set, epochs=30, num_threads=2)
+model.fit(train_set, item_features=item_features, epochs=50, num_threads=2)
 
 # get recommendations
 users_ids_list = [3, 25, 451, 737, 901]
@@ -44,10 +46,10 @@ recommendations_to_show = 3
 sample_recommendation(model=model, train_data=train_set, item_labels=item_labels, user_ids=users_ids_list, n_known=known_items_to_show, n_results=recommendations_to_show)
 
 patk = precision_at_k(model, test_set, train_interactions=train_set, k=recommendations_to_show,
-               user_features=None, item_features=data['item_features'], preserve_rows=True, num_threads=1, check_intersections=True)
+               user_features=None, item_features=item_features, preserve_rows=True, num_threads=1, check_intersections=True)
 
 ratk = recall_at_k(model, test_set, train_interactions=train_set, k=recommendations_to_show,
-               user_features=None, item_features=data['item_features'], preserve_rows=True, num_threads=1, check_intersections=True)
+               user_features=None, item_features=item_features, preserve_rows=True, num_threads=1, check_intersections=True)
 
 print('\nPrecision at k (proportion of recommended items in the top-k set that are relevant)')
 print(patk[users_ids_list])
