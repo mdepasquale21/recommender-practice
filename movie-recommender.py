@@ -1,6 +1,7 @@
 import numpy as np
 from lightfm.datasets import fetch_movielens
 from lightfm import LightFM
+from lightfm.evaluation import precision_at_k, recall_at_k
 
 def sample_recommendation(model, train_data, item_labels, user_ids, n_known=3, n_results=2):
     n_users, n_items = train_data.shape
@@ -41,3 +42,15 @@ users_ids_list = [3, 25, 451, 737, 901]
 known_items_to_show = 5
 recommendations_to_show = 3
 sample_recommendation(model=model, train_data=train_set, item_labels=item_labels, user_ids=users_ids_list, n_known=known_items_to_show, n_results=recommendations_to_show)
+
+patk = precision_at_k(model, test_set, train_interactions=train_set, k=recommendations_to_show,
+               user_features=None, item_features=data['item_features'], preserve_rows=True, num_threads=1, check_intersections=True)
+
+ratk = recall_at_k(model, test_set, train_interactions=train_set, k=recommendations_to_show,
+               user_features=None, item_features=data['item_features'], preserve_rows=True, num_threads=1, check_intersections=True)
+
+print('\nPrecision at k (proportion of recommended items in the top-k set that are relevant)')
+print(patk[users_ids_list])
+
+print('\nRecall at k (proportion of relevant items found in the top-k recommendations)')
+print(ratk[users_ids_list])
